@@ -24,10 +24,12 @@ app.use(express.json());
 
 //Importar Rutas
 const productos = require('./rutas/productos');
+const usuarios = require('./rutas/usuarios');
 
 //Rutas
 
-app.use('/api/producto', productos);
+app.use('/api', productos);
+app.use('/api',usuarios); 
 
 app.get('/', (req, res) => {
     res.json({
@@ -36,16 +38,7 @@ app.get('/', (req, res) => {
     })
 }); 
 
-/* app.get('/productos', (req, res) => {
-    sequelize.query("select * from productos", 
-    { type: sequelize.QueryTypes.SELECT} )
-    .then( (list) => {
-	    res.send(list);
-    });
-}); */
-
-//
 
 app.listen(PORT, () => {
-    console.log(`Servidor escuchando en puerto ${PORT}, YEAH!!!`);
+    console.log(`Servidor escuchando en puerto ${PORT}, GRAN EQUIPO :3 :) :D!!!!!!`);
 });
