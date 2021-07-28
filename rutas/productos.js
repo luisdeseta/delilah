@@ -60,6 +60,7 @@ router.get('/product', async (req, res) => {
         const prodByName = await Prod.findAll({
             where: { name: req.body.name}
         });
+        //console.log(prodByName)
         if (prodByName.length === 0) {
             res.json({Status: "Producto no encontrado"})
         } else{
