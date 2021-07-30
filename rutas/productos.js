@@ -1,5 +1,6 @@
 const router = require('express').Router();
 const { Sequelize, DataTypes, Model, QueryTypes } = require('sequelize');
+const validUser = require('../services/middle')
 // const sequelize = require('../index.js') se puede requerir desde index
 
 
@@ -76,7 +77,7 @@ router.get('/product', async (req, res) => {
  * 
  */
 
-router.post('/product', async (req, res) => {
+router.post('/product', validUser, async (req, res) => {
     try {
         await sequelize.query(`
         INSERT into products (name, shortname, price, description)

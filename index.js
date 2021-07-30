@@ -25,11 +25,15 @@ app.use(express.json());
 //Importar Rutas
 const productos = require('./rutas/productos');
 const usuarios = require('./rutas/usuarios');
+const admin = require('./rutas/admin');
 
+//Middlewares
+const validUser = require('./services/middle');
 //Rutas
 
 app.use('/api', productos);
 app.use('/api',usuarios); 
+app.use('/api/admin', validUser,admin);
 
 app.get('/', (req, res) => {
     res.json({
@@ -40,5 +44,6 @@ app.get('/', (req, res) => {
 
 
 app.listen(PORT, () => {
-    console.log(`Servidor escuchando en puerto ${PORT}, GRAN EQUIPO :3 :) :D!!!!!!`);
+    console.log(`Servidor escuchando en puerto ${PORT}`);
 });
+

@@ -1,6 +1,9 @@
 const router = require('express').Router();
 const { Sequelize, DataTypes, Model, QueryTypes, Op} = require('sequelize');
 const bcrypt = require('bcrypt');
+const validator = require('validator');
+require('dotenv').config()
+const jwt = require('jsonwebtoken');
 
 //conexion a la base de datos
 const USER = process.env.DB_USER;
@@ -13,33 +16,62 @@ const sequelize = new Sequelize(DB, USER, PASS, {
     dialect: 'mysql',
     loggin: false,
     freezeTableName: true,
-    
 
-
-})
+}) 
 
 // creacion del modelo de usuarios
-// falta validar  pass y longitudes
 const User = sequelize.define("user", {
-    userName: DataTypes.TEXT,
+    userName: {
+      type: DataTypes.TEXT,
+      allowNull: false,  
+      validate:{ 
+        notNull:{msg: "el userName no puede ser null"}
+              }},
     completeName: DataTypes.TEXT,
-    email: {type: DataTypes.STRING,
-            validate:{isEmail:true,
+    email: {
+      type: DataTypes.STRING,
+      allowNull: false,
+            validate:{
+              isEmail:{msg: "Revise el formato del email"},
+              notNull:{msg: "el email no puede ser null"}
                     }},
     phone: {type: DataTypes.INTEGER},
     adress: DataTypes.TEXT,
-    pass: DataTypes.TEXT
+    pass: {
+      type: DataTypes.TEXT,
+      allowNull: false,
+      validate:{
+          notNull: {msg: "pass no puede ser null"}
+      }
+    },
+    role:{
+      type: DataTypes.TEXT,
+      allowNull: false,
+    }
     
   },
   {
-    timestamps: false
+    timestamps: false,
+    
   });
 
   //crea la tabla de usuarios
+  //TODO Crear un usuario ADMIN 
   router.post('/createusertable', async (req, res) => {
     try {
         await User.sync();
+        const saltos = await bcrypt.genSalt(10);
+        const admin = User.create({
+          userName: "admin",
+          completeName: "Administrador",
+          email:"admin@admin.com.ar",
+          phone:"1",
+          adress:"calle 1",
+          pass: await bcrypt.hash("admin123", saltos),
+          role: "admin"  
+        })
         res.json({Mensaje: `Tabla ${User.tableName} creada con éxito`});
+
         
     } catch (error) {
         res.json({error})        
@@ -48,8 +80,6 @@ const User = sequelize.define("user", {
 
 //registro de usuarios
 router.post('/user', async (req, res)=>{
-    //validacion de formato?
-
     //revisar usuario existen
     const verifyEmail = await User.findAll({
       where:{ email: req.body.email }
@@ -69,13 +99,16 @@ router.post('/user', async (req, res)=>{
           email:req.body.email,
           phone:req.body.phone,
           adress:req.body.adress,
-          pass:pass
+          pass:pass,
+          role: "user"
+
+
         })
-        res.json({Mensaje: `Hola ${usuario.completeName}, gracias por resgistrarte :)`})
+        res.status(200).json({Mensaje: `Usuario registrado con exito`})
         
 
       } catch (error) {
-        res.json({Mensaje: "no se pudo crear el usuario"})
+        res.status(400).json({Mensaje: "no se pudo crear el usuario", Error: error})
         
       }
       
@@ -85,17 +118,41 @@ router.post('/user', async (req, res)=>{
         
       }
 
-    } res.json({erro: "error"})
+    } res.json({error: "error"})
 
 })
 
-router.get('/user', async (req, res) =>{
+//Login de Usuario
+router.post('/user/login', async (req, res) =>{
+  //Busco por email
+  const userLogin = await User.findAll({
+    where:{  email:{[Op.eq]: req.body.email}  }
+  })
+  if (userLogin == 0) return res.status(400).json({Mensaje: "Email o password incorrecto!!"})
+  //Valido pass
+  const userPass = await bcrypt.compare(req.body.pass, userLogin[0].pass)
+  if (!userPass) return res.status(400).json({Mensaje: "Email o password incorrectO"})
+  //Creo el token
+  const token = jwt.sign({
+    name: userLogin.userName,
+    id: userLogin.id,
+    //role: userLogin.role
+  },process.env.SECRET_TOKEN)
+  
+  res.json({Usuario: userLogin[0].completeName,
+  token});
+  //envio el token al header
+  res.header('token', token).json({data:{token}})
+});
+
+
+router.get('/users', async (req, res) =>{
   const users = await User.findAll({
-    where:{ email: req.body.email   }
+    //where:{ email: req.body.email   }
    })
-  res.json({Mensaje: `Hola ${users[0].email}`});
+  res.json({users});
   //console.log(users.every(user => user instanceof User)); 
-  console.log("All users:", JSON.stringify(users, null,2));
+  console.log(JSON.stringify(users, null,2));
 })
 
 module.exports = router
