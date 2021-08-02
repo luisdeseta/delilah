@@ -132,11 +132,13 @@ router.post('/user/login', async (req, res) =>{
   //Valido pass
   const userPass = await bcrypt.compare(req.body.pass, userLogin[0].pass)
   if (!userPass) return res.status(400).json({Mensaje: "Email o password incorrectO"})
+  console.log(JSON.stringify(userLogin[0], null, 2))
   //Creo el token
   const token = jwt.sign({
-    name: userLogin.userName,
-    id: userLogin.id,
-    //role: userLogin.role
+    //name: userLogin[0].userName,
+    email: userLogin[0].email,
+    //id: userLogin[0].id,
+    role: userLogin[0].role
   },process.env.SECRET_TOKEN)
   
   res.json({Usuario: userLogin[0].completeName,

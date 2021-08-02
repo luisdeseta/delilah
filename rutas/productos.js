@@ -77,7 +77,7 @@ router.get('/product', async (req, res) => {
  * 
  */
 
-router.post('/product', validUser, async (req, res) => {
+router.post('/product', async (req, res) => {
     try {
         await sequelize.query(`
         INSERT into products (name, shortname, price, description)

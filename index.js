@@ -28,12 +28,13 @@ const usuarios = require('./rutas/usuarios');
 const admin = require('./rutas/admin');
 
 //Middlewares
-const validUser = require('./services/middle');
+const {validToken, validUser} = require('./services/middle')
+//const algo = require('./services/middle');
 //Rutas
 
 app.use('/api', productos);
 app.use('/api',usuarios); 
-app.use('/api/admin', validUser,admin);
+app.use('/api/admin', validUser, admin);
 
 app.get('/', (req, res) => {
     res.json({
