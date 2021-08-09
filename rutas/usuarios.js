@@ -1,26 +1,14 @@
 const router = require('express').Router();
-const { Sequelize, DataTypes, Model, QueryTypes, Op} = require('sequelize');
 const bcrypt = require('bcrypt');
 const validator = require('validator');
 require('dotenv').config()
 const jwt = require('jsonwebtoken');
+const sequelize = require('../services/conexion');
+const { Sequelize, DataTypes, Model, QueryTypes, Op } = require('sequelize');
 
-//conexion a la base de datos
-const USER = process.env.DB_USER;
-const PASS = process.env.DB_PASS;
-const DB = process.env.DB_NAME;
-const HOST = process.env.HOST;
-
-const sequelize = new Sequelize(DB, USER, PASS, {
-    host: HOST,
-    dialect: 'mysql',
-    loggin: false,
-    freezeTableName: true,
-
-}) 
 
 // creacion del modelo de usuarios
-const User = sequelize.define("user", {
+const User = sequelize.define("usuarios", {
     userName: {
       type: DataTypes.TEXT,
       allowNull: false,  
@@ -55,13 +43,12 @@ const User = sequelize.define("user", {
     
   });
 
-  //crea la tabla de usuarios
-  //TODO Crear un usuario ADMIN 
+  //Crea el usuario Admin, la tabla esta creada desde Scrip de SQL
   router.post('/createusertable', async (req, res) => {
     try {
-        await User.sync();
+        //await User.sync();
         const saltos = await bcrypt.genSalt(10);
-        const admin = User.create({
+        const admin = await User.create({
           userName: "admin",
           completeName: "Administrador",
           email:"admin@admin.com.ar",
@@ -70,7 +57,7 @@ const User = sequelize.define("user", {
           pass: await bcrypt.hash("admin123", saltos),
           role: "admin"  
         })
-        res.json({Mensaje: `Tabla ${User.tableName} creada con éxito`});
+        res.json({Mensaje: `Usuario ${User.userName} creado con éxito`});
 
         
     } catch (error) {
@@ -123,6 +110,7 @@ router.post('/user', async (req, res)=>{
 })
 
 //Login de Usuario
+//TODO se puede logear con USERNAME o con EMAIL!!!
 router.post('/user/login', async (req, res) =>{
   //Busco por email
   const userLogin = await User.findAll({
@@ -132,7 +120,7 @@ router.post('/user/login', async (req, res) =>{
   //Valido pass
   const userPass = await bcrypt.compare(req.body.pass, userLogin[0].pass)
   if (!userPass) return res.status(400).json({Mensaje: "Email o password incorrectO"})
-  console.log(JSON.stringify(userLogin[0], null, 2))
+  //console.log(JSON.stringify(userLogin[0], null, 2))
   //Creo el token
   const token = jwt.sign({
     //name: userLogin[0].userName,
@@ -149,12 +137,12 @@ router.post('/user/login', async (req, res) =>{
 
 
 router.get('/users', async (req, res) =>{
-  const users = await User.findAll({
+  const usuarios = await User.findAll({
     //where:{ email: req.body.email   }
    })
-  res.json({users});
+  res.json({usuarios});
   //console.log(users.every(user => user instanceof User)); 
-  console.log(JSON.stringify(users, null,2));
+  //console.log(JSON.stringify(users, null,2));
 })
 
-module.exports = router
+module.exports = {router, User}

@@ -1,30 +1,16 @@
 const express = require('express');
 const app = express();
-const { Sequelize, DataTypes, Model, QueryTypes } = require('sequelize');
 const bodyparser = require('body-parser');
-require('dotenv').config()
+require('dotenv').config();
 const PORT = process.env.PORT;
-
-//conexion a la base de datos
-const USER = process.env.DB_USER;
-const PASS = process.env.DB_PASS;
-const DB = process.env.DB_NAME;
-const HOST = process.env.HOST;
-
-const sequelize = new Sequelize(DB, USER, PASS, {
-    host: HOST,
-    dialect: 'mysql',
-    loggin: false,
-    freezeTableName: true
-
-})
+const sequelize = require('./services/conexion');
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 //Importar Rutas
 const productos = require('./rutas/productos');
-const usuarios = require('./rutas/usuarios');
+const {router, User}= require('./rutas/usuarios');
 const admin = require('./rutas/admin');
 
 //Middlewares
@@ -33,8 +19,8 @@ const {validToken, validUser} = require('./services/middle')
 //Rutas
 
 app.use('/api', productos);
-app.use('/api',usuarios); 
-app.use('/api/admin', validUser, admin);
+app.use('/api',router); 
+app.use('/api/admin',validToken, validUser, admin);
 
 app.get('/', (req, res) => {
     res.json({

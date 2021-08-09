@@ -1,31 +1,13 @@
 const router = require('express').Router();
+//import validUser from '../services/middle';
+const sequelize = require('../services/conexion');
 const { Sequelize, DataTypes, Model, QueryTypes } = require('sequelize');
-const validUser = require('../services/middle')
-// const sequelize = require('../index.js') se puede requerir desde index
-
 
 // Constantes
 
-
-//conexion a la base de datos
-const USER = process.env.DB_USER;
-const PASS = process.env.DB_PASS;
-const DB = process.env.DB_NAME;
-const HOST = process.env.HOST;
-
-const sequelize = new Sequelize(DB, USER, PASS, {
-    host: HOST,
-    dialect: 'mysql',
-    loggin: false,
-    freezeTableName: true,
-    
-
-})
-
-
 //Creacion de modelo de Producto
 
-const Prod = sequelize.define("product", {
+const Prod = sequelize.define("platos", {
     name: DataTypes.TEXT,
     shortname: DataTypes.TEXT,
     price: DataTypes.INTEGER,
@@ -79,11 +61,11 @@ router.get('/product', async (req, res) => {
 
 router.post('/product', async (req, res) => {
     try {
-        await sequelize.query(`
+        await query(`
         INSERT into products (name, shortname, price, description)
         values (:_name, :_shortname, :_price, :_description)
         `,{
-            type: sequelize.QueryTypes.INSERT,
+            type: QueryTypes.INSERT,
             replacements:{
                 _name: req.body.name,
                 _shortname: req.body.shortname,
@@ -107,11 +89,11 @@ router.post('/product', async (req, res) => {
  */
 router.put('/product', async (req, res) => {
     try {
-        await sequelize.query(`
+        await query(`
         UPDATE products set price = :_price, name = :_name
         WHERE id = :_id
         `,{
-            type: sequelize.QueryTypes.UPDATE,
+            type: QueryTypes.UPDATE,
             replacements:{
                 _id: req.body.id,
                 _name: req.body.name || undefined,
@@ -154,10 +136,11 @@ router.delete('/product', async (req, res) =>{
  * @description Trae la lista de todos los productos
  */
 router.get('/products', (req, res) => {
-    sequelize.query("select * from products", 
-    { type: sequelize.QueryTypes.SELECT} )
+    query("select * from products", 
+    { type: QueryTypes.SELECT} )
     .then( (list) => {
 	    res.send(list);
     });
 }); 
+
 module.exports = router
