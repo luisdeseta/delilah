@@ -1,44 +1,50 @@
-const router = require('express').Router();
-//import validUser from '../services/middle';
+const routerP = require('express').Router();
 const sequelize = require('../services/conexion');
 const { Sequelize, DataTypes, Model, QueryTypes } = require('sequelize');
+const { query } = require('express');
 
-// Constantes
+//Middlewares
+const {validToken, validUser} = require('../services/middle')
 
 //Creacion de modelo de Producto
 
 const Prod = sequelize.define("platos", {
-    name: DataTypes.TEXT,
-    shortname: DataTypes.TEXT,
-    price: DataTypes.INTEGER,
+    name: { 
+        type: DataTypes.TEXT,
+        allowNull: false,
+        validate:{
+            notNull: "name de producto no puede ser null"
+        }
+    },
+    shortname: {
+        type: DataTypes.TEXT,
+        allowNull: false,
+        validate:{
+            notNull: "shortname de producto no puede ser null"
+        }
+    }, 
+    price: {
+        type: DataTypes.DECIMAL(10,2),
+        allowNull: false,
+        validate:{
+            notNull: "price de producto no puede ser null"
+        }
+    },
     description: DataTypes.TEXT,
-    
+    photo: DataTypes.TEXT,
+    available: DataTypes.INTEGER
   },
   {
     timestamps: false
   });
   
-/**
- *  @description Crea la tabla productos si no existe
- * TODO detallar en la instrucciones de instalación
- * 
- * */ 
-router.post('/createtable', async (req, res) => {
-    try {
-        await Prod.sync();
-        res.json({Mensaje: `Tabla ${Prod.tableName} creada con éxito`});
-        
-    } catch (error) {
-        res.json({error})        
-    }
-});
 
 /**
  * @description Trae los datos de un producto
  * 
  */
 
-router.get('/product', async (req, res) => {
+routerP.get('/product', validToken, async (req, res) => {
     try {
         const prodByName = await Prod.findAll({
             where: { name: req.body.name}
@@ -55,22 +61,23 @@ router.get('/product', async (req, res) => {
     }
 })
 /**
- * @description Crear un producto en la tabla PRODUCTS
- * 
+ * @description Crear un producto en la tabla platos
+ * TODO validación de producto repetido
  */
-
-router.post('/product', async (req, res) => {
+routerP.post('/product', (req, res) => {
     try {
-        await query(`
-        INSERT into products (name, shortname, price, description)
-        values (:_name, :_shortname, :_price, :_description)
+         sequelize.query(`
+        INSERT into platos (name, shortname, price, description, photo, available)
+        values (:_name, :_shortname, :_price, :_description, :_photo,:_available)
         `,{
             type: QueryTypes.INSERT,
             replacements:{
                 _name: req.body.name,
                 _shortname: req.body.shortname,
                 _price: req.body.price,
-                _description: req.body.description
+                _description: req.body.description,
+                _photo: req.body.photo,
+                _available: req.body.available
             }
     
         })
@@ -87,7 +94,7 @@ router.post('/product', async (req, res) => {
  * @description actualiza un producto por id en la tabla productos
  * 
  */
-router.put('/product', async (req, res) => {
+routerP.put('/product', validToken,validUser,async (req, res) => {
     try {
         await query(`
         UPDATE products set price = :_price, name = :_name
@@ -117,7 +124,7 @@ router.put('/product', async (req, res) => {
  * 
  */
 
-router.delete('/product', async (req, res) =>{
+routerP.delete('/product', validToken, validUser, async (req, res) =>{
     try {
         const prodByID = await Prod.destroy({
             where: { ID: req.body.ID}
@@ -135,7 +142,7 @@ router.delete('/product', async (req, res) =>{
 /**
  * @description Trae la lista de todos los productos
  */
-router.get('/products', (req, res) => {
+routerP.get('/products', validToken, (req, res) => {
     query("select * from products", 
     { type: QueryTypes.SELECT} )
     .then( (list) => {
@@ -143,4 +150,4 @@ router.get('/products', (req, res) => {
     });
 }); 
 
-module.exports = router
+module.exports = {routerP, Prod}

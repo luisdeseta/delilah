@@ -129,10 +129,9 @@ router.post('/user/login', async (req, res) =>{
     role: userLogin[0].role
   },process.env.SECRET_TOKEN)
   
-  res.json({Usuario: userLogin[0].completeName,
-  token});
+  res.json({Usuario: userLogin[0].completeName,token});
   //envio el token al header
-  res.header('token', token).json({data:{token}})
+  //res.header('token', token).json({data:{token}})
 });
 
 

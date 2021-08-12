@@ -71,5 +71,5 @@ try {
     }
 }
 
-//userExample();
-userAdmin();
+userExample();
+//userAdmin();

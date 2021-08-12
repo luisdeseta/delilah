@@ -9,16 +9,15 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 //Importar Rutas
-const productos = require('./rutas/productos');
+const {routerP, Prod} = require('./rutas/productos');
 const {router, User}= require('./rutas/usuarios');
 const admin = require('./rutas/admin');
 
 //Middlewares
 const {validToken, validUser} = require('./services/middle')
-//const algo = require('./services/middle');
-//Rutas
 
-app.use('/api', productos);
+//Rutas
+app.use('/api', routerP);
 app.use('/api',router); 
 app.use('/api/admin',validToken, validUser, admin);
 
