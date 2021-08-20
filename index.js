@@ -12,6 +12,7 @@ app.use(express.json());
 const {routerP, Prod} = require('./rutas/productos');
 const {router, User}= require('./rutas/usuarios');
 const admin = require('./rutas/admin');
+const {routerI} = require('./rutas/pedidos')
 
 //Middlewares
 const {validToken, validUser} = require('./services/middle')
@@ -20,6 +21,7 @@ const {validToken, validUser} = require('./services/middle')
 app.use('/api', routerP);
 app.use('/api',router); 
 app.use('/api/admin',validToken, validUser, admin);
+app.use('/api', routerI)
 
 app.get('/', (req, res) => {
     res.json({

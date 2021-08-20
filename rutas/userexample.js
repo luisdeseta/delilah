@@ -9,14 +9,13 @@ const {User} = require('./usuarios');
 async function userAdmin  () {
     
     try {
-      const saltos = await bcrypt.genSalt(10);
       const admin = await User.create({
         userName: "admin",
         completeName: "admin",
         email:"admin@acamica.com.ar",
         phone:"1",
         adress:"calle 1",
-        pass: await bcrypt.hash("admin123", saltos),
+        pass: await bcrypt.hash("admin123", 10),
         role: "admin"  
       })
       console.log({Mensaje: `Usuario ${admin.userName} creado con éxito`});
@@ -24,7 +23,7 @@ async function userAdmin  () {
     
       
     } catch (error) {
-        console.log(error + " ==> error al Admin user");        
+        console.log(error + " ==> error al crear Admin user");        
     }
 }
 
@@ -71,5 +70,5 @@ try {
     }
 }
 
-userExample();
-//userAdmin();
+//userExample();
+userAdmin();

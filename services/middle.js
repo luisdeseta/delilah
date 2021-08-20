@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken')
 require('dotenv').config()
 
+//TODO revisar el req.header clase 45
 const validToken = (req, res, next) =>{
     const token = req.header('token');
     //req.token = isToken;

@@ -1,6 +1,6 @@
 const routerP = require('express').Router();
 const sequelize = require('../services/conexion');
-const { Sequelize, DataTypes, Model, QueryTypes } = require('sequelize');
+const { Sequelize, DataTypes, Model, QueryTypes, Op } = require('sequelize');
 const { query } = require('express');
 
 //Middlewares
@@ -47,7 +47,7 @@ const Prod = sequelize.define("platos", {
 routerP.get('/product', validToken, async (req, res) => {
     try {
         const prodByName = await Prod.findAll({
-            where: { name: req.body.name}
+            where: { name: {[Op.like]:`%${req.body.name}%` }}
         });
         //console.log(prodByName)
         if (prodByName.length === 0) {
@@ -62,11 +62,16 @@ routerP.get('/product', validToken, async (req, res) => {
 })
 /**
  * @description Crear un producto en la tabla platos
- * TODO validación de producto repetido
+ * 
  */
-routerP.post('/product', (req, res) => {
+routerP.post('/product', async (req, res) => {
+    const verifyProd = await sequelize.query(`SELECT * from platos 
+    WHERE name ='${req.body.name}' 
+    `, {type: sequelize.QueryTypes.SELECT})
+    //console.log("verifyProd", JSON.stringify(verifyProd, null,2))
+    if (verifyProd.length != 0) return res.status('401').json({Mensaje: "Ya existe un producto con ese nombre"})
     try {
-         sequelize.query(`
+        sequelize.query(`
         INSERT into platos (name, shortname, price, description, photo, available)
         values (:_name, :_shortname, :_price, :_description, :_photo,:_available)
         `,{

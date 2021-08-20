@@ -110,11 +110,13 @@ router.post('/user', async (req, res)=>{
 })
 
 //Login de Usuario
-//TODO se puede logear con USERNAME o con EMAIL!!!
+//
 router.post('/user/login', async (req, res) =>{
-  //Busco por email
+  //Busco por email o nombre de usuario para el login
   const userLogin = await User.findAll({
-    where:{  email:{[Op.eq]: req.body.email}  }
+    where:{  [Op.or]: [{email : req.body.usuario}, {userName : req.body.usuario}]
+    }
+  
   })
   if (userLogin == 0) return res.status(400).json({Mensaje: "Email o password incorrecto!!"})
   //Valido pass
@@ -125,16 +127,33 @@ router.post('/user/login', async (req, res) =>{
   const token = jwt.sign({
     //name: userLogin[0].userName,
     email: userLogin[0].email,
-    //id: userLogin[0].id,
+    id: userLogin[0].id,
     role: userLogin[0].role
   },process.env.SECRET_TOKEN)
   
-  res.json({Usuario: userLogin[0].completeName,token});
+  //res.json({Usuario: userLogin[0].completeName,token});
   //envio el token al header
-  //res.header('token', token).json({data:{token}})
+  //TODO usar express-JWT
+  res.header('token', token).json({data:{token}})
 });
 
+/**
+ * @description acceso a datos personales del usuario
+ * USER
+ */
+router.get('/user', async (req, res) =>{
+  const valid = jwt.verify(req.header('token'), process.env.SECRET_TOKEN, );
+  const userID = valid.id;
+  const user = await User.findAll({
+    where: {id: userID}
+  })
+  res.status(200).json({Datos_Usuario: user})
+})
 
+/**
+ * @description recupera la lista de todos los usuarios
+ * ADMIN
+ */
 router.get('/users', async (req, res) =>{
   const usuarios = await User.findAll({
     //where:{ email: req.body.email   }
