@@ -5,7 +5,7 @@ require('dotenv').config()
 const jwt = require('jsonwebtoken');
 const sequelize = require('../services/conexion');
 const { Sequelize, DataTypes, Model, QueryTypes, Op } = require('sequelize');
-
+const expressJwt = require('express-jwt');
 
 // creacion del modelo de usuarios
 const User = sequelize.define("usuarios", {
@@ -46,7 +46,7 @@ const User = sequelize.define("usuarios", {
   //Crea el usuario Admin, la tabla esta creada desde Scrip de SQL
   router.post('/createusertable', async (req, res) => {
     try {
-        //await User.sync();
+        
         const saltos = await bcrypt.genSalt(10);
         const admin = await User.create({
           userName: "admin",
@@ -65,14 +65,15 @@ const User = sequelize.define("usuarios", {
     }
 });
 
-//registro de usuarios
+
+//Registro de usuarios
+//Condicion 1
 router.post('/user', async (req, res)=>{
-    //revisar usuario existen
+    //revisa si usuario existe
     const verifyEmail = await User.findAll({
       where:{ email: req.body.email }
     })
     console.log("verifyEmail", JSON.stringify(verifyEmail, null,2))
-
 
     if (verifyEmail.length == 0) {
       try {
@@ -129,12 +130,11 @@ router.post('/user/login', async (req, res) =>{
     email: userLogin[0].email,
     id: userLogin[0].id,
     role: userLogin[0].role
-  },process.env.SECRET_TOKEN)
+  },process.env.SECRET_TOKEN,
+  { algorithm: 'HS512'})
   
-  //res.json({Usuario: userLogin[0].completeName,token});
-  //envio el token al header
-  //TODO usar express-JWT
-  res.header('token', token).json({data:{token}})
+  
+  res.json({data:{token}})
 });
 
 /**

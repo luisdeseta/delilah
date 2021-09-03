@@ -97,7 +97,7 @@ paths:
       tags: 
       - Items
       summary: Devuelve datos de pedido (Pedido+Items)
-      description: Usuario "Admin", recibe los datos de todos los pedidos. Usuario "User", recibe datos de pedidos generados ese ID de usuario (via token)
+      description: Usuario "Admin", consulta los datos de todos los pedidos. Usuario "User", consulta datos de pedidos generados ese ID de usuario (via token)
       parameters:
       - in: header
         name: token
@@ -106,7 +106,7 @@ paths:
       - in: "body"
         name: status
         description: User puede elegir tipo de status a consultar. Default "nuevo" 
-        required: true
+        required: false
         schema:
           $ref: "#/definitions/Item"
       responses:
@@ -114,7 +114,6 @@ paths:
           description: Detalle del pedido/os
         400:
           description: Error
- 
  
 definitions:
   Pedido:

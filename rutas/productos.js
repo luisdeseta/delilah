@@ -2,11 +2,14 @@ const routerP = require('express').Router();
 const sequelize = require('../services/conexion');
 const { Sequelize, DataTypes, Model, QueryTypes, Op } = require('sequelize');
 const { query } = require('express');
+const expressJwt = require('express-jwt');
+require('dotenv').config()
+const expJWT = expressJwt({ secret: process.env.SECRET_TOKEN, algorithms: ['HS512'] });
 
-//Middlewares
-const {validToken, validUser} = require('../services/middle')
-
-//Creacion de modelo de Producto
+/**
+ * @description Creacion del modelo de productos
+ * @param platos nombre de la tabla "platos"
+ */
 
 const Prod = sequelize.define("platos", {
     name: { 
@@ -40,11 +43,14 @@ const Prod = sequelize.define("platos", {
   
 
 /**
+ * Condicion 5 - Read
  * @description Trae los datos de un producto
+ * @param name recibe nombre de producto por body
  * 
  */
 
-routerP.get('/product', validToken, async (req, res) => {
+routerP.get('/product', expJWT, async (req, res) => {
+
     try {
         const prodByName = await Prod.findAll({
             where: { name: {[Op.like]:`%${req.body.name}%` }}
@@ -61,10 +67,14 @@ routerP.get('/product', validToken, async (req, res) => {
     }
 })
 /**
+ * Condicion 5 - Create
  * @description Crear un producto en la tabla platos
  * 
  */
-routerP.post('/product', async (req, res) => {
+routerP.post('/product',expJWT, async (req, res) => {
+    if (req.user.role != "admin") return res.status(401).json({Status: "acceso denegado"})
+    console.log(req.user.role)
+    //valido si producto existe
     const verifyProd = await sequelize.query(`SELECT * from platos 
     WHERE name ='${req.body.name}' 
     `, {type: sequelize.QueryTypes.SELECT})
@@ -96,13 +106,17 @@ routerP.post('/product', async (req, res) => {
 });
 
 /**
+ * Condicion 5 - Update
  * @description actualiza un producto por id en la tabla productos
  * 
  */
-routerP.put('/product', validToken,validUser,async (req, res) => {
+routerP.put('/product', expJWT,async (req, res) => {
+    if (req.user.role != "admin") return res.status(401).json({Status: "acceso denegado"})
+    console.log(req.user.role)
     try {
-        await query(`
-        UPDATE products set price = :_price, name = :_name
+        const prodUpdate = await sequelize.query(`
+        UPDATE platos set price = :_price, name = :_name, shortname = :_shortname,
+        description = :_description
         WHERE id = :_id
         `,{
             type: QueryTypes.UPDATE,
@@ -125,11 +139,14 @@ routerP.put('/product', validToken,validUser,async (req, res) => {
 });
 
 /**
+ * Condicion 5 - Delete
  * @description Borra un producto por ID
  * 
  */
 
-routerP.delete('/product', validToken, validUser, async (req, res) =>{
+routerP.delete('/product', expJWT, async (req, res) =>{
+    if (req.user.role != "admin") return res.status(401).json({Status: "acceso denegado"})
+    console.log(req.user.role)
     try {
         const prodByID = await Prod.destroy({
             where: { ID: req.body.ID}
@@ -145,14 +162,13 @@ routerP.delete('/product', validToken, validUser, async (req, res) =>{
     }
 })
 /**
+ * CONDICION 2
  * @description Trae la lista de todos los productos
  */
-routerP.get('/products', validToken, (req, res) => {
-    query("select * from products", 
+routerP.get('/products', expJWT, async (req, res) => {
+    const products = await sequelize.query("select * from platos", 
     { type: QueryTypes.SELECT} )
-    .then( (list) => {
-	    res.send(list);
-    });
+    res.status(200).json({products})
 }); 
 
 module.exports = {routerP, Prod}

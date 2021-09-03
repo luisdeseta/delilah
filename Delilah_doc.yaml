@@ -3,7 +3,7 @@ info:
   description: "Sprint 3 "
   version: "1.0.0"
   title: "Gestion de pedidos"
-  termsOfService: "http://ejemplo/tyc/"
+  termsOfService: "http://ejemplo.com/tyc/"
   contact:
     email: "luis.deseta@gmail.com"
   license:
@@ -90,14 +90,14 @@ paths:
           $ref: "#/definitions/Item"
       responses:
         200:
-          description: Pedido Actualizado
+          description: Total del pedido. String con nombrecorto de los platos solicitados por usuario
         400:
           description: Error
     get:
       tags: 
       - Items
       summary: Devuelve datos de pedido (Pedido+Items)
-      description: Usuario "Admin", recibe los datos de todos los pedidos. Usuario "User", recibe datos de pedidos generados ese ID de usuario (via token)
+      description: Usuario "Admin", consulta los datos de todos los pedidos. Usuario "User", consulta datos de pedidos generados ese ID de usuario (via token)
       parameters:
       - in: header
         name: token
@@ -106,7 +106,7 @@ paths:
       - in: "body"
         name: status
         description: User puede elegir tipo de status a consultar. Default "nuevo" 
-        required: true
+        required: false
         schema:
           $ref: "#/definitions/Item"
       responses:
@@ -114,8 +114,51 @@ paths:
           description: Detalle del pedido/os
         400:
           description: Error
- 
- 
+    delete:
+      tags: 
+      - Items
+      summary: Elimina 1 pedido
+      description: Usuario "Admin", elimina todo el pedido incluyendo los platos cargados en tabla Items
+      parameters:
+      - in: header
+        name: token
+        required: true
+        type: integer
+      - in: "body"
+        name: id
+        description: ID de pedido que se desea eliminar 
+        required: true
+        schema:
+          $ref: "#/definitions/Item"
+      responses:
+        200:
+          description: pedido borrado con exito
+        400:
+          description: Error
+  /item/user:
+    get:
+      tags: 
+      - Items
+      summary: Devuelve datos de 1 pedido (Pedido+Items+Usuario)
+      description: Consulta los detalles de 1 pedido con datos de Pedido, items y detalle del usuario
+      parameters:
+      - in: header
+        name: token
+        required: true
+        type: integer
+      - in: "body"
+        name: pedidoID
+        description: User puede elegir tipo de status a consultar. Default "nuevo" 
+        required: true
+        schema:
+          $ref: "#/definitions/Item"
+      responses:
+        200:
+          description: Detalle de 1 pedido
+        400:
+          description: Error
+#Productos#
+#Usuarios#
 definitions:
   Pedido:
     type: "object"
@@ -138,6 +181,4 @@ definitions:
         format: "int64"
       price:
         type: "integer"
-        format: "int64"      
-            
-            
+        format: "int64"
