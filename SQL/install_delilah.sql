@@ -106,7 +106,7 @@ CREATE TABLE IF NOT EXISTS `items` (
   CONSTRAINT `fk_items_platos1`
     FOREIGN KEY (`plato_id`)
     REFERENCES `platos` (`id`)
-    ON DELETE NO ACTION
+    ON DELETE CASCADE
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 

@@ -13,6 +13,7 @@ app.use(express.json());
 const {routerP, Prod} = require('./rutas/productos');
 const {router, User}= require('./rutas/usuarios');
 const {routerI} = require('./rutas/pedidos')
+const {routerF} = require('./rutas/favoritos');
 
 //Middlewares
 const expJWT = expressJwt({ secret: process.env.SECRET_TOKEN, algorithms: ['HS512'] });
@@ -20,7 +21,8 @@ const expJWT = expressJwt({ secret: process.env.SECRET_TOKEN, algorithms: ['HS51
 //Rutas
 app.use('/api', routerP);
 app.use('/api', router); 
-app.use('/api', routerI)
+app.use('/api', routerI);
+app.use('/api', routerF)
 
 app.get('/', (req, res) => {
     res.json({

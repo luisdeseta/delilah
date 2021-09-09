@@ -57,13 +57,13 @@ routerP.get('/product', expJWT, async (req, res) => {
         });
         //console.log(prodByName)
         if (prodByName.length === 0) {
-            res.json({Status: "Producto no encontrado"})
+            res.status(402).json({Status: "Producto no encontrado"})
         } else{
-            res.json({prodByName}) 
+            res.status(200).json({prodByName}) 
 
         }
     } catch (error) {
-        res.json({Status: "Error en la sentencia SQL"})
+        res.status(400).json({Status: "Error en la sentencia SQL"})
     }
 })
 /**
@@ -79,7 +79,7 @@ routerP.post('/product',expJWT, async (req, res) => {
     WHERE name ='${req.body.name}' 
     `, {type: sequelize.QueryTypes.SELECT})
     //console.log("verifyProd", JSON.stringify(verifyProd, null,2))
-    if (verifyProd.length != 0) return res.status('401').json({Mensaje: "Ya existe un producto con ese nombre"})
+    if (verifyProd.length != 0) return res.status('403').json({Mensaje: "Ya existe un producto con ese nombre"})
     try {
         sequelize.query(`
         INSERT into platos (name, shortname, price, description, photo, available)
@@ -94,19 +94,17 @@ routerP.post('/product',expJWT, async (req, res) => {
                 _photo: req.body.photo,
                 _available: req.body.available
             }
-    
         })
-        res.json({Status: 'Producto creado con éxito'})
+        res.status(200).json({Status: 'Producto creado con éxito'})
         
     } catch (error) {
-        res.json({Status: "error al crear el producto"})
-        
+        res.status(402).json({Status: "Error al crear el producto"})
     }
 
 });
 
 /**
- * Condicion 5 - Update
+ * Condicion 5 - Put
  * @description actualiza un producto por id en la tabla productos
  * 
  */
@@ -129,11 +127,11 @@ routerP.put('/product', expJWT,async (req, res) => {
             }
     
         })
-        res.json({
-            Status: "Actualizado con éxito"})
+        res.status(200).json({
+            Status: "Producto Actualizado con éxito"})
         
     } catch (error) {
-        res.json({Status: "Error al actualizar el producto"})
+        res.status(402).json({Status: "Error al actualizar el producto"})
     }
 
 });
@@ -152,13 +150,13 @@ routerP.delete('/product', expJWT, async (req, res) =>{
             where: { ID: req.body.ID}
         }); 
         if (prodByID === 0) {
-            res.json({Status: "Producto no encontrado"})
+            res.status(404).json({Status: "Producto no encontrado"})
         } else{
-            res.json({Status: `Producto borrado!`}) 
+            res.status(200).json({Status: `Producto borrado!`}) 
 
         }
     } catch (error) {
-        res.json({Status: "Error en la sentencia SQL"})
+        res.status(401).json({Status: "Error en la sentencia SQL"})
     }
 })
 /**

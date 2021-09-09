@@ -1,0 +1,456 @@
+swagger: "2.0"
+info:
+  description: "Sprint 3 "
+  version: "1.0.0"
+  title: "Gestion de pedidos"
+  termsOfService: "http://ejemplo.com/tyc/"
+  contact:
+    email: "luis.deseta@gmail.com"
+  license:
+    name: "Apache 2.0"
+    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
+host: "localhost"
+basePath: "/api"
+tags:
+- name: Usuarios
+  description: "Registro y Login de usuarios."
+- name: Pedidos
+  description: "Crear el ID de pedido y Actualizar pedido"
+- name: Items
+  description: "detalles cargar los platos en la tabla Items"
+- name: Platos
+  description: "Edición y Creación de platos en la tabla platos"
+- name: Favoritos
+  description: "Guarda platos favoritos"
+paths:
+#USUARIOS#
+  /user:
+      post:
+        tags: 
+        - Usuarios
+        summary: Registro de usuario
+        description: "Verifica si el email existe en la base de datos y sino,  crea un usuario nuevo"
+        parameters:
+        - in: "body"
+          name: body
+          description: Información para registrar un usuario 
+          required: true
+          schema:
+            $ref: "#/definitions/Usuario"
+        responses:
+          200:
+            description: Usuario registrado con éxito
+          400:
+            description: No se puede crear el usuario
+          401:
+            description: Este usuario ya existe
+          402:
+            description: Error sentencia SQL
+      get:
+        tags: 
+        - Usuarios
+        summary: consulta info de usuarios
+        description: "Datos del empleado logueado"
+        parameters:
+        - in: header
+          name: token
+          required: true
+          type: string
+        responses:
+          200:
+            description: "Datos_Usuario: {objeto}"
+          400:
+            description: "Email o password incorrecto!!"
+  /user/login:
+      post:
+        tags: 
+        - Usuarios
+        summary: login de usuario
+        description: "Información para que un usuario se pueda loguear"
+        parameters:
+        - in: "body"
+          name: body
+          description: "El parametro **usuario** puede recibir email o nombre de usuario" 
+          required: true
+          schema:
+            $ref: "#/definitions/Login"
+        responses:
+          200:
+            description: "data: {token}"
+          400:
+            description: "Email o password incorrecto!!"
+  /users:
+      get:
+        tags: 
+        - Usuarios
+        summary: consulta info de todos los usuarios
+        description: "Usurio Admin puede consultar todos los usuarios"
+        parameters:
+        - in: header
+          name: token
+          required: true
+          type: string
+        responses:
+          200:
+            description: "Datos_Usuario: {objeto}"
+          401:
+            description: "Usuario no autorizado"
+  /order:
+    post:
+      tags: 
+      - Pedidos
+      summary: Genera un Pedido nuevo
+      description: Genera un ID de pedido con status "Nuevo" en la tabla pedidos. Si el usuario ya tiene un pedido activo, devuelve el ID de pedido.
+      parameters:
+      - in: header
+        name: token
+        required: true
+        type: string
+      responses:
+        200:
+          description: "Order_ID: {object}"
+        400:
+          description: Error
+    put:
+      tags: 
+      - Pedidos
+      summary: Actualiza datos del Pedido
+      description: Si el role del usuario es "ADMIN" Actualiza status, total, resumen de platos (nombre corto) y medio de pago. Si el role es "USER" solo puede actualizar medio de pago.
+      parameters:
+      - in: header
+        name: token
+        required: true
+        type: string
+      - in: "body"
+        name: "body"
+        description: ""
+        required: true
+        schema:
+          $ref: "#/definitions/Pedido"
+      responses:
+        200:
+          description: OK
+        405:
+          description: Elemento Invalido
+  /item/{idOrder}:
+    post:
+      tags: 
+      - Items
+      summary: Gernera la lista de platos
+      description: Carga los platos en la tabla Items elegidos por el usuario, debe estar asociado a un ID de Pedido valido
+      parameters:
+      - in: header
+        name: token
+        required: true
+        type: string
+      - in: path
+        name: idOrder
+        required: true
+        type: string
+      - in: "body"
+        name: body
+        description: Parametros con detalle del plato que solicita el usuario
+        required: true
+        schema:
+          $ref: "#/definitions/Item"
+      responses:
+        200:
+          description: ID de Item
+        401:
+          description: Verificar número de orden o id producto
+  /item:
+    put:
+      tags: 
+      - Items
+      summary: Actualiza un plato - Solo Admin
+      description: Actualiza los datos de un plato (Plato, Cantidad y precio.)
+      parameters:
+      - in: header
+        name: token
+        required: true
+        type: integer
+      - in: "body"
+        name: body
+        description: Parametros con detalle del plato que solicita el usuario
+        required: true
+        schema:
+          $ref: "#/definitions/Item"
+      responses:
+        200:
+          description: Total del pedido. String con nombrecorto de los platos solicitados por usuario
+        400:
+          description: Error
+    get:
+      tags: 
+      - Items
+      summary: Devuelve datos de pedido (Pedido+Items)
+      description: Usuario "Admin", consulta los datos de todos los pedidos. Usuario "User", consulta datos de pedidos generados ese ID de usuario con estatus "nuevo" (via token)
+      parameters:
+      - in: header
+        name: token
+        required: true
+        type: integer
+      - in: "body"
+        name: status
+        description: User puede elegir tipo de status a consultar. Default "nuevo" 
+        required: false
+        schema:
+          $ref: "#/definitions/Item"
+      responses:
+        200:
+          description: Detalle del pedido/os
+        400:
+          description: Error
+    delete:
+      tags: 
+      - Items
+      summary: Elimina 1 pedido
+      description: Usuario "Admin", elimina todo el pedido incluyendo los platos cargados en tabla Items
+      parameters:
+      - in: header
+        name: token
+        required: true
+        type: integer
+      - in: "body"
+        name: id
+        description: ID de pedido que se desea eliminar 
+        required: true
+        schema:
+          type: integer
+      responses:
+        200:
+          description: pedido borrado con exito
+        400:
+          description: Error
+  /item/user:
+    get:
+      tags: 
+      - Items
+      summary: Devuelve datos de 1 pedido (Pedido+Items+Usuario)
+      description: Consulta los detalles de 1 pedido con datos de Pedido, items y detalle del usuario
+      parameters:
+      - in: header
+        name: token
+        required: true
+        type: integer
+      - in: "body"
+        name: pedidoID
+        description: User puede elegir tipo de status a consultar. Default "nuevo" 
+        required: true
+        schema:
+            type: string
+      responses:
+        200:
+          description: Detalle de 1 pedido
+        400:
+          description: Error
+#Productos#
+  /product:
+      get:
+        tags: 
+        - Platos
+        summary: Consulta un plato
+        description: Consulta los detalles de un plato, recibe parametros por body
+        parameters:
+        - in: "body"
+          name: name
+          description: Busca un plato por el campo nombre. 
+          required: true
+          schema:
+            type: string
+        responses:
+          200:
+            description: Detalle de 1 plato
+          402:
+            description: Producto no encontrado
+          400:
+            description: Error en la sentencia SQL
+      post:
+        tags: 
+        - Platos
+        summary: Crea un plato
+        description: Crea un plato nuevo. Solo usuario ADMIN
+        parameters:
+        - in: "body"
+          name: body
+          description: Crea un plato nuevo
+          required: true
+          schema:
+            $ref: "#/definitions/Plato"
+        responses:
+          200:
+            description: Producto creado con éxito
+          401:
+            description: Acceso denegado
+          402:
+            description: Error al crear el producto
+          403:
+            description: Ya existe un producto con ese nombre
+      put:
+        tags: 
+        - Platos
+        summary: Actualiza un plato
+        description: Actualiza un plato especificado por numero de ID. Solo usuario ADMIN
+        parameters:
+        - in: "body"
+          name: body
+          description: Actualiza detalles de un plato existente.
+          required: true
+          schema:
+            $ref: "#/definitions/Plato"
+        responses:
+          200:
+            description: Producto actualizado con éxito
+          401:
+            description: acceso denegado
+          402:
+            description: Error al actualizar producto
+      delete:
+        tags: 
+        - Platos
+        summary: Borrar un plato
+        description: Borra un plato especificado por ID. Solo usuario ADMIN
+        parameters:
+        - in: "body"
+          name: ID
+          description: ID del plato que se desea eliminar.
+          required: true
+          schema:
+            type: integer
+        responses:
+          200:
+            description: "Producto borrado con éxito"
+          401:
+            description: "Error en la sentencia SQL"
+          404:
+            description: "Producto no encontrado"  
+  /products:
+      get:
+        tags: 
+        - Platos
+        summary: Consulta todos los platos
+        description: Consulta la lista de todos los platos
+        parameters:
+        - in: header
+          name: token
+          required: true
+          type: integer
+        responses:
+          200:
+            description: Detalle de todos los platos
+
+  /fav:
+      post:
+        tags: 
+        - Favoritos
+        summary: Agrega un plato a Favoritos
+        description: "Agrega un registro con el ID del User logueago"
+        parameters:
+        - in: header
+          name: token
+          required: true
+          type: string
+        - in: "body"
+          name: "_plato_id"
+          description: "ID del plato para agregar a la tabla" 
+          required: true
+          schema:
+            type: integer
+        responses:
+          200:
+            description: Plato agregado a favoritos
+          404:
+            description: error
+      put:
+        tags: 
+        - Favoritos
+        summary: Elimina un plato a Favoritos
+        description: "Elimina un registro con el ID del User logueago"
+        parameters:
+        - in: header
+          name: token
+          required: true
+          type: string
+        - in: "body"
+          name: "_plato_id"
+          description: "ID del plato para agregar a la tabla" 
+          required: true
+          schema:
+            type: integer
+        responses:
+          200:
+            description: Plato Eliminado de favoritos
+          404:
+            description: error
+
+
+#Modelos de body#
+definitions:
+  Pedido:
+    type: "object"
+    properties:
+      pedido_id:
+        type: "integer"
+        format: "int64"
+      payment:
+        type: "string"
+      status:
+        type: "string"
+  Item:
+    type: "object"
+    properties:
+      id:
+        type: "integer"
+        format: "int64"
+      plato_id:
+        type: "integer"
+        format: "int64"
+      quantity:
+        type: "integer"
+        format: "int64"
+      price:
+        type: "integer"
+        format: "int64"
+  Plato:
+    type: "object"
+    properties:
+      id:
+        type: "string"
+      name:
+        type: "string"
+      shortname:
+        type: "string"
+      price: 
+        type: "integer"
+        format: "int64"
+      quantity:
+        type: "integer"
+        format: "int64"
+      description:
+        type: "string"
+      photo:
+        type: "string"
+      available:
+        type: "string"
+  Usuario:
+    type: "object"
+    properties:
+      userName:
+        type: "string"
+      completeName:
+        type: "string"
+      email:
+        type: "string"
+      phone:
+        type: "integer"
+      adress:
+        type: "string"
+      pass:
+        type: "string"
+  Login:
+    type: "object"
+    properties:
+      usuario:
+        type: "string"
+      pass:
+        type: "string"

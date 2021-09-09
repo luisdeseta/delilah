@@ -6,6 +6,7 @@ const jwt = require('jsonwebtoken');
 const sequelize = require('../services/conexion');
 const { Sequelize, DataTypes, Model, QueryTypes, Op } = require('sequelize');
 const expressJwt = require('express-jwt');
+const expJWT = expressJwt({ secret: process.env.SECRET_TOKEN, algorithms: ['HS512'] });
 
 // creacion del modelo de usuarios
 const User = sequelize.define("usuarios", {
@@ -102,11 +103,11 @@ router.post('/user', async (req, res)=>{
       
     } else {
       if (verifyEmail.length) {
-        res.status(400).json({Mensaje: `Este email ya existe`})
+        res.status(401).json({Mensaje: `Este usuario ya existe`})
         
       }
 
-    } res.json({error: "error"})
+    } res.status(402).json({error: "error sentencia SQL"})
 
 })
 
@@ -122,7 +123,7 @@ router.post('/user/login', async (req, res) =>{
   if (userLogin == 0) return res.status(400).json({Mensaje: "Email o password incorrecto!!"})
   //Valido pass
   const userPass = await bcrypt.compare(req.body.pass, userLogin[0].pass)
-  if (!userPass) return res.status(400).json({Mensaje: "Email o password incorrectO"})
+  if (!userPass) return res.status(400).json({Mensaje: "Email o password incorrecto!!"})
   //console.log(JSON.stringify(userLogin[0], null, 2))
   //Creo el token
   const token = jwt.sign({
@@ -134,31 +135,40 @@ router.post('/user/login', async (req, res) =>{
   { algorithm: 'HS512'})
   
   
-  res.json({data:{token}})
+  res.status(200).json({data:{token}})
 });
 
 /**
  * @description acceso a datos personales del usuario
  * USER
  */
-router.get('/user', async (req, res) =>{
-  const valid = jwt.verify(req.header('token'), process.env.SECRET_TOKEN, );
-  const userID = valid.id;
-  const user = await User.findAll({
-    where: {id: userID}
-  })
-  res.status(200).json({Datos_Usuario: user})
+router.get('/user',expJWT, async (req, res) =>{
+  const userID = req.user.id;
+  try {
+    const user = await User.findAll({
+      where: {id: userID}
+    })
+    res.status(200).json({Datos_Usuario: user})
+    
+  } catch (error) {
+    res.status(401).json(error);
+  }
+
+
+
 })
 
 /**
  * @description recupera la lista de todos los usuarios
  * ADMIN
  */
-router.get('/users', async (req, res) =>{
+router.get('/users',expJWT, async (req, res) =>{
+  const token = req.user;
+  if (token.role != "admin") return res.status(401).json({mensaje: "Usuario no autorizado"}) 
   const usuarios = await User.findAll({
     //where:{ email: req.body.email   }
    })
-  res.json({usuarios});
+  res.status(200).json({usuarios});
   //console.log(users.every(user => user instanceof User)); 
   //console.log(JSON.stringify(users, null,2));
 })

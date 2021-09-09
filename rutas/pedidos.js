@@ -186,6 +186,7 @@ routerI.put('/order', expJWT, async (req, res) =>{
                 _payment: req.body.payment,
             }
         })
+        res.status(200).json({total, desc})
     } else if (token.role == "admin") {
         const pedido = await sequelize.query(`
         UPDATE  pedidos set payment = :_payment, status = :_status, total = ${total}

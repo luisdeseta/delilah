@@ -1,12 +1,12 @@
 # Instalación # 
 ## Archivos ##
 Se incluyen los archivos para iniciar el servidor, instalar las dependencias y la instalación de la base de datos.
-Debes descomprimir el archivo nombre.zip que incluye estos archivos (.js, .env, .sql y .json).
+Debes descomprimir el archivo delilah_resto_v1.zip que incluye estos archivos (.js, .env, .sql y .json).
 
 
 ## Base de datos ##
 Para crear la estructura de la base de datos, debes 
-ejecutar el script "install_delilah.sql" en la base de datos
+ejecutar el script "install_delilah.sql" que se encuentra en la carpeta **/SQL**
 
 ### Datos conexión a la Base de Datos ###
 
@@ -18,19 +18,24 @@ Cuando lo tengas listo debes borrar .example en el nombre de este archivo.
 Instalar los paquetes del proyecto incluidos en package.json
 
 ``` $ npm install ```
+## Ejecución del servidor ##
+Para inicializar el servidor debes ejecutar este comando en la terminal
 
+``` $ nodemon index ```
 ## Datos de ejemplo ##
 
-**Productos**
 
-Para obtener un set de datos de productos, ejecutar el script 
-"platos_ejemplos.sql" en la base de datos
+Para obtener un set de datos de ejemplo, ejecutar el script 
+"install_delilah_datos_ejemplos.sql" en la base de datos.
+Este script incluye usuarios (con role Admin y role user), pedidos, platos y favoritos para poder probar todos los endpoint del proyecto
 
 **Usuario**
 
-El archivo userexample.js crea usuarios de ejemplo en la tabla 'users' automaticamente en la base de datos conectada. 
-Se incluye un usuario Admin por defecto.
-Puedes configuar la contraseña del usuario Admin en el archivo .env
-Para crear estos usuarios debes ejecutar el archivo desde consola:
+Importante para tener en cuenta en el login de los usuarios:
 
-``` $ node userexample.js```
+El password del usuario "admin" de ejemplo es "admin123".
+El password del usuario con role "user" es "123123"
+
+## Uso de Endpoins ##
+
+En el archivo Delilah_docV1.yaml se encuentra la descripcion y detalles de uso de cada endpoint del proyecto.
